@@ -1,0 +1,25 @@
+# 의존성
+node_modules/
+
+# 비밀
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# 수집 원문·산출물 — 각자 실행해서 만든다 (폴더 구조만 .gitkeep으로 유지)
+research/*
+!research/.gitkeep
+outputs/research/*
+!outputs/research/.gitkeep
+outputs/planning/*
+!outputs/planning/.gitkeep
+outputs/images/
+
+# 강사 준비 자료·임시 파일 (작업 폴더에 남아 있어도 올라가지 않음)
+docs/
+samples/
+_to_delete*/
+_to_delete*
+*.tar.gz
+.DS_Store

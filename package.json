@@ -1,0 +1,13 @@
+{
+  "name": "hanmir-contents",
+  "version": "1.0.0",
+  "private": true,
+  "description": "한미르 인스타 콘텐츠 파이프라인 실습 — 경쟁사 분석(pptx) → 콘텐츠 기획·제작(Figma)",
+  "scripts": {
+    "fetch-images": "node scripts/fetch-images.js",
+    "make-report": "node scripts/make-report.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}
