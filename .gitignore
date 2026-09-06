@@ -23,3 +23,6 @@ _to_delete*/
 _to_delete*
 *.tar.gz
 .DS_Store
+
+# MCP 등록은 사전과제에서 각자 (claude mcp add --scope project)
+.mcp.json
