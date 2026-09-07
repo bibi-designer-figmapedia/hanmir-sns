@@ -24,6 +24,8 @@ CLAUDE.md                파이프라인 규칙·위임·게이트·함정
 .claude/agents/          ig-content-maker.md (완성본) · ig-competitor-scout.md (완성본 — 수업에서는 이 파일을 지우고 빈칸 카드로 직접 만든다)
 scripts/fetch-images.js  Apify 이미지 즉시 다운로드
 scripts/make-report.js   보고서 JSON → pptx
+scripts/figma-read-template.js  maker가 use_figma에 넣는 템플릿 읽기 스크립트
+scripts/figma-make-post.js      maker가 use_figma에 넣는 게시물(캐러셀) 생성 스크립트 — INPUT 블록만 채움
 research/                수집 원문 (이미지는 git 제외)
 outputs/research/        보고서 json·md·pptx
 outputs/planning/        기획서
