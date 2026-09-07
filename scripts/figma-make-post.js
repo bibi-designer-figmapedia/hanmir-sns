@@ -8,7 +8,9 @@ const ACCENT   = '#007635';                                              // B-0 
 const CORE     = null;                                                   // BRAND.md 1 브랜드 컬러 hex, 없으면 null
 const BRAND    = '{BRAND.md 1 브랜드명}';                                 // txt-brand 레이어에 들어간다
 const SLIDES   = [                                                       // 기획서 슬라이드 표 순서대로 (Cover → Body… → Ending)
-  // { templateId: 'B-0의 id', text: { headline: '…', body: '…', cta: '…', option: 'A | B', caption: '… | …' } }
+  // { templateId: 'B-0의 id', photo: 'light'|'dark', text: { headline: '…', body: '…', cta: '…', option: 'A | B', caption: '… | …' } }
+  // photo: 그 장의 이미지 프롬프트가 어떤 사진인가 — 'dark'(야외·자연·숲·노을·어두운 배경)면 사진 위에 바로 얹힌 글자를 흰색으로,
+  //        'light'(스튜디오·화이트·밝은 실내)면 템플릿 기본색(검정) 그대로. 이미지 슬롯이 글자와 겹치지 않는 장은 안 써도 된다.
   // '—' 칸과 템플릿에 없는 레이어는 빼도 되고 두어도 된다(건너뛴다). 같은 칸이 여러 개인 템플릿(-2, -3)은 ' | '로 나눠 쓴다.
 ];
 // ────────────────────────────────────────
@@ -45,6 +47,25 @@ const recolor = inst => {
   return n;
 };
 
+// ── 사진 위에 바로 얹힌 글자만 흰색으로 (photo: 'dark') ──
+const bareTexts = inst => {
+  const img = inst.findOne(n => n.name === 'image');
+  if (!img || !img.absoluteBoundingBox) return [];
+  const b = img.absoluteBoundingBox;
+  return inst.findAll(n => n.type === 'TEXT' && n.name.startsWith('txt-')).filter(t => {
+    const boxed = Array.isArray(t.parent.fills) && t.parent.fills.some(f => f.type === 'SOLID' && f.visible !== false && (f.opacity ?? 1) > 0.5);
+    const a = t.absoluteBoundingBox;
+    return !boxed && a && a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  });
+};
+const tone = (inst, photo) => {
+  if (photo !== 'dark') return 0;                                       // 밝은 사진 = 템플릿 기본색(검정) 그대로
+  const white = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+  const ts = bareTexts(inst);
+  for (const t of ts) t.fills = white;                                  // 강조 줄(액센트)도 함께 흰색 — 어두운 사진 위에선 액센트가 안 읽힌다
+  return ts.length;
+};
+
 // ── 텍스트 넣기: 칸 하나 = 레이어 txt-{칸}, txt-{칸}-2, txt-{칸}-3 … (값은 ' | '로 나눔) ──
 const put = (inst, key, value) => {
   if (value == null || value === '' || value === '—') return;
@@ -69,7 +90,9 @@ for (const s of SLIDES) {
   row.appendChild(inst);
   for (const [k, v] of Object.entries(s.text || {})) put(inst, k, v);
   put(inst, 'brand', BRAND);
-  result.push({ instanceId: inst.id, swapped: recolor(inst) });         // 텍스트 넣은 뒤에 색 치환
+  const swapped = recolor(inst);                                        // 텍스트 넣은 뒤에 색 치환
+  const whitened = tone(inst, s.photo);                                 // 그다음 사진 밝기에 따라 글자색
+  result.push({ instanceId: inst.id, swapped, whitened });
 }
 await row.screenshot();
-return { createdNodeIds: [row.id, ...result.map(r => r.instanceId)], rowId: row.id, swapped: result.map(r => r.swapped) };
+return { createdNodeIds: [row.id, ...result.map(r => r.instanceId)], rowId: row.id, swapped: result.map(r => r.swapped), whitened: result.map(r => r.whitened) };

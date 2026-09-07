@@ -97,12 +97,14 @@ model: sonnet
 - 컨셉 한 줄: {무엇이 보이고 무엇을 말하는가}
 
 **슬라이드 표** — ⚠️ 열 이름은 **피그마 템플릿의 텍스트 레이어 이름과 1:1**이다. `headline` 칸 → `txt-headline` 레이어, `body` → `txt-body`, `cta` → `txt-cta`, `option` → `txt-option`, `caption` → `txt-caption`. 열은 이 다섯으로 고정하고 다른 이름을 만들지 않는다. 템플릿에 없는 레이어의 칸은 B에서 버려지고, 역할에 안 쓰는 칸은 `—`.
-| # | 역할 | headline | body | cta | option | caption | 이미지 프롬프트 (영문 1문장, 배경·구도는 B에서 붙는다) |
-|---|---|---|---|---|---|---|---|
-| 1 | Cover | Pulling Again? | Here's Why | — | — | — | A small dog pulling forward on a leash on a park path, morning light |
-| 2 | Body | The Collar Problem | Pressure goes straight to the neck | — | — | — | Close-up of a small dog's neck and collar, soft daylight |
-| 3 | Body | Chest, Not Neck | A harness spreads the pull across the chest | — | — | — | A Pomeranian wearing a peach-colored dog harness, side view, park |
-| 4 | Ending | Jogger Harness | Fruits Edition | Save this | Peach · S/M/L | Water-resistant webbing | Product shot of a peach dog harness on a clean surface |
+| # | 역할 | photo | headline | body | cta | option | caption | 이미지 프롬프트 (영문 1문장, 비율은 B에서 붙는다) |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Cover | dark | Pulling Again? | Here's Why | — | — | — | A small dog pulling forward on a leash on a park path, morning light |
+| 2 | Body | dark | The Collar Problem | Pressure goes straight to the neck | — | — | — | Close-up of a small dog's neck and collar, soft daylight |
+| 3 | Body | dark | Chest, Not Neck | A harness spreads the pull across the chest | — | — | — | A Pomeranian wearing a peach-colored dog harness, side view, park |
+| 4 | Ending | light | Jogger Harness | Fruits Edition | Save this | Peach · S/M/L | Water-resistant webbing | Product shot of a peach dog harness on a clean surface |
+
+`photo` 칸 = 그 장 이미지 프롬프트가 어떤 사진인가. **dark** = 야외·자연·숲·노을·저녁·어두운 배경 / **light** = 스튜디오·화이트 배경·밝은 실내. 사진 위에 글자가 바로 얹히는 템플릿(B-0의 `textOnPhoto`)에서 `dark`면 B가 그 글자를 흰색으로 바꾼다. 한 게시물 안에서 장마다 달라도 된다.
 
 역할별 칸: **Cover** = headline·body (각 ≤3단어/한글 ≤6자, 두 줄이 한 문장처럼) · **Body** = headline(≤5단어)·body(≤8단어) · **Ending** = headline(제품명)·body(에디션·한 줄 특징)·cta(≤3단어)·option·caption.
 장 순서 = 읽는 순서. 1번은 항상 Cover, 마지막은 항상 Ending. Body는 장마다 다른 한 가지.
@@ -115,7 +117,7 @@ model: sonnet
 이미지 프롬프트 규칙: **장마다 하나.** `BRAND.md 5. 이미지 무드`(분위기·주로 보이는 것·나오면 안 되는 것)와 `4. 이미지에 나올 것`(장소·모델·소재)을 반영한다. 없으면 기본값. 항상 **영문 한 문장**. 같은 게시물 안의 장들은 같은 장면·같은 빛·같은 피사체로 이어지게 (캐러셀은 한 세트다 — 장마다 다른 곳에서 찍은 것처럼 보이면 안 된다). Ending은 제품이 또렷한 컷. A에서는 **피사체·장면·제품·빛**까지만 쓴다 — 배경 톤과 구도는 템플릿 글자색에 달려 있어서 B에서 붙는다.
 이 프롬프트는 에이전트가 실행하지 않는다 — 사람이 피그마에서 프레임의 `image` 레이어를 선택하고 Actions → **Make an image**에 붙여 넣는다. 그래서 **복사해서 바로 쓸 수 있는 한 문장**이어야 한다.
 **텍스트를 이미지에 넣으라고 쓰지 않는다** — 글자는 템플릿 레이어가 얹는다.
-**배경·구도를 A에서 지정하지 않는다** — B-2에서 그 슬라이드 템플릿의 `imageSuffix`(글자색이 밝으면 어두운 배경, 어두우면 밝은 배경 + 글자 위치에 맞춘 피사체 위치)를 붙여 최종 프롬프트를 만든다. 피그마 없이 기획만 한 경우엔 기획서에 "배경·구도는 피그마로 뽑을 때 확정"이라고 적는다.
+**"위쪽은 비워라 / 글자 자리는 단순하게" 같은 구역 지시를 쓰지 않는다** — 생성 모델이 띠를 그리거나 인물을 잘라서 맞춘다. 글자 가독성은 `photo` 칸(글자색)과 템플릿이 책임진다. B-2에서 그 슬라이드 템플릿의 `imageSuffix`(슬롯 비율 + "한 장의 연속된 사진")만 붙인다. 피그마 없이 기획만 한 경우엔 기획서에 "배경·구도는 피그마로 뽑을 때 확정"이라고 적는다.
 제품은 구체적으로 쓴다: "harness"가 아니라 `a peach-colored dog harness (chest strap with buckle, not a collar, not a leash)`처럼 형태·색을 못 박는다. 글자 수 상한을 지킨다.
 
 기획서 분량: 머리(브리프 요약 + 흐름표) + 회차당 위 블록 하나(장수만큼 행). 근거·분석·레퍼런스 설명을 덧붙이지 않는다 — 그건 보고서(pptx)에 있다.
@@ -149,11 +151,12 @@ model: sonnet
 
 ### B-1. 게시물 1건 = `use_figma` 1회 — `scripts/figma-make-post.js`
 
-파일을 읽어 맨 위 **INPUT 블록만** 채운다: `ROW_NAME`(`[n회차] 제목 (장수)`) · `FONTS`(B-0 fonts 전부) · `ACCENT`(B-0 accent) · `CORE`(BRAND.md 1 브랜드 컬러, 없으면 null) · `BRAND`(브랜드명) · `SLIDES`(슬라이드 표 순서대로 `{templateId, text:{headline, body, cta, option, caption}}`). 나머지는 손대지 않는다.
-스크립트가 하는 일: `📥 Output` 페이지(없으면 생성) → 한 줄 만들기 → 장 순서대로 인스턴스 → 텍스트 → 액센트를 브랜드 컬러로 치환(인스턴스 오버라이드만, 밝은 색이면 버튼 글자 검정) → 스크린샷. 돌려주는 `swapped`가 브랜드 컬러가 있는데 0이면 `ACCENT`가 실제 버튼 색인지 확인하고 그 게시물만 다시.
+파일을 읽어 맨 위 **INPUT 블록만** 채운다: `ROW_NAME`(`[n회차] 제목 (장수)`) · `FONTS`(B-0 fonts 전부) · `ACCENT`(B-0 accent) · `CORE`(BRAND.md 1 브랜드 컬러, 없으면 null) · `BRAND`(브랜드명) · `SLIDES`(슬라이드 표 순서대로 `{templateId, photo, text:{headline, body, cta, option, caption}}` — `photo`는 표의 photo 칸 그대로). 나머지는 손대지 않는다.
+스크립트가 하는 일: `📥 Output` 페이지(없으면 생성) → 한 줄 만들기 → 장 순서대로 인스턴스 → 텍스트 → 액센트를 브랜드 컬러로 치환(인스턴스 오버라이드만, 밝은 색이면 버튼 글자 검정) → 스크린샷. 돌려주는 `whitened`는 흰색으로 바꾼 글자 수(그 장 `photo: 'dark'`일 때만 0보다 크다). `swapped`가 브랜드 컬러가 있는데 0이면 `ACCENT`가 실제 버튼 색인지 확인하고 그 게시물만 다시.
 
 ### B-2. 확인 + 인수인계
 
+**자가점검 4가지 — 사람에게 묻기 전에 내가 먼저 본다.** ① 스크린샷에서 글자 잘림 ② 최종 이미지 프롬프트에 구역 지시가 섞였는지(`kept plain` · `empty space` · `leave the top` · "비워" 같은 말 — 있으면 지운다) ③ 프롬프트가 마침표 없는 영문 한 문장인지 ④ `swapped`(브랜드 컬러 치환)·`whitened`(흰 글자 전환) 수가 기대와 맞는지. 걸리면 그 게시물만 고치고, 보고에는 **결과만** 한 줄로 적는다.
 스크린샷에서 글자 잘림이 보이면 그 게시물만 고친다. 각 게시물 줄의 노드 링크(`{URL}?node-id={rowId를 -로}`)와 실제 쓴 템플릿 이름을 기획서 슬라이드 표에 써 넣는다.
 이미지 프롬프트를 **최종본**으로 바꾼다: `A의 프롬프트 + ", " + 그 장 템플릿의 imageSuffix`. 기획서 맨 아래에 붙인다:
 
@@ -187,5 +190,6 @@ plan:   outputs/planning/{YYYY-MM}_content-plan.md  ({브랜드} · {제품} · 
 figma:  {n}회차 캐러셀 틀 생성 (회차당 {장수}장) — 📥 Output (이미지 슬롯은 비어 있음) · 액센트 {#템플릿색} → 브랜드 컬러 {#hex} 치환 {n}곳 (없으면 "템플릿 색 그대로")
   - [1회차] {제목} ({장수}장) → {node 링크}
 다음: 피그마에서 image 레이어 선택 → Make an image → 기획서 프롬프트 붙여넣기
-검수 요청: (1) 이미지가 BRAND.md 4·5 안인가 (2) 글자 잘림 없는가 · Cover→Body→Ending 흐름이 읽히는가 (3) 카피가 BRAND.md 3. 말투·언어 스타일(영문·짧게)인가 (4) 버튼·강조 줄이 브랜드 컬러인가 (밝은 색이면 글자가 보이는가)
+자가점검: 글자 잘림 없음 · 구역 지시 없음 · 프롬프트 한 문장 · swapped {n} · whitened {n}
+검수 요청(사람 눈): (1) 이미지가 BRAND.md 4·5 안인가 (2) Cover→Body→Ending 흐름이 읽히는가 (3) 카피가 BRAND.md 3. 말투·언어인가 (4) photo(dark/light) 판정이 그 사진과 맞는가
 ```
