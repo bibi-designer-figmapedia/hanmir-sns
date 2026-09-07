@@ -1,4 +1,4 @@
-# hanmir-contents — 인스타 콘텐츠 파이프라인
+# hanmir-sns — 인스타 콘텐츠 파이프라인
 
 경쟁사 인스타를 긁어 보고서를 만들고 → 우리 콘텐츠를 기획해 → 피그마 템플릿에 카피를 채운 게시물 틀을 만든다.
 이미지는 기획서의 프롬프트로 사람이 피그마 **Make an image**에서 생성해 넣는다.
@@ -17,12 +17,11 @@ BRAND.md ──▶ ig-competitor-scout ──▶ 보고서 .pptx (+ Drive 업로
 ## 폴더
 
 ```
-BRAND.md                 브랜드 설명서 7칸 — 자기 브랜드로 쓴다 (★ 제품·제약·경쟁사 필수)
+BRAND.md                 브랜드 설명서 7칸 (빈 템플릿) — 자기 브랜드로 쓴다 (★ 제품·제약·경쟁사 필수 · 1번 브랜드 컬러를 적으면 피그마 버튼·강조색이 그 색으로)
 BRAND.example.md         분독으로 채운 예시
 CLAUDE.md                파이프라인 규칙·위임·게이트·함정
 .mcp.json                (없음 — claude mcp add --scope project 로 각자 생성: apify · figma)
-.claude/agents/          ig-content-maker.md (ig-competitor-scout.md는 수업에서 직접 만든다)
-.claude/commands/        /ig-research · /ig-make
+.claude/agents/          ig-content-maker.md (완성본) · ig-competitor-scout.md (완성본 — 수업에서는 이 파일을 지우고 빈칸 카드로 직접 만든다)
 scripts/fetch-images.js  Apify 이미지 즉시 다운로드
 scripts/make-report.js   보고서 JSON → pptx
 research/                수집 원문 (이미지는 git 제외)
@@ -37,7 +36,7 @@ npm install
 claude            # /mcp 에서 apify · figma · Google Drive connected 확인
 ```
 
-BRAND.md를 자기 브랜드로 채운 뒤 → `/ig-research` → pptx 확인 → `/ig-make` (피그마 파일 URL 붙여서) → 피그마에서 카피 확인 → Make an image로 이미지.
+BRAND.md를 자기 브랜드로 채운 뒤 → "템플릿 스타일 가이드 읽어서 BRAND.md 7번에 정리해줘 {URL}" → "경쟁사 분석해줘" → pptx 확인 → "콘텐츠 기획해줘" → "피그마로 뽑아줘 {URL}" → 피그마에서 카피 확인 → Make an image로 이미지. 슬래시 커맨드는 없다 — 전부 자연어.
 
 ## 다음 클라이언트로 복제
 

@@ -50,6 +50,7 @@ model: sonnet
   **필수(★)는 2·4·6.** 2 제품 또는 4 제약이 `{…}`로 비어 있으면 **시작하지 말고** 채워달라고 돌려준다.
   3·5는 비어 있어도 진행한다 — 아래 **기본값**을 쓰고, 기획서 머리에 "BRAND.md의 {섹션}이 비어 있어 기본값 사용"이라고 한 줄 적는다.
 - 피그마 파일 URL — **B에서만** 필요. 프롬프트에 있으면 그것, 없으면 `BRAND.md 7. 피그마 템플릿`. 템플릿 구조(배리언트·레이어·글자색)는 표로 받지 않는다 — **B-0에서 피그마를 직접 읽어 판단한다.** A(기획)는 피그마 없이 돈다.
+- 브랜드 컬러 — `BRAND.md 1. 브랜드 한 줄`의 "브랜드 컬러" hex. **B에서만** 쓴다: 템플릿의 액센트 컬러(B-0가 찾는다)와 다르면 게시물을 만들 때 액센트를 이 색으로 바꾼다. 비어 있으면 템플릿 색 그대로. 7번의 "템플릿 스타일 가이드" 표는 사람용 — 참고만 하고 값은 피그마에서 다시 읽는다.
 - `outputs/research/*_competitor-report.md` — **있으면** 패턴 참고. 없어도 진행한다 (브리프와 BRAND.md만으로 기획).
 
 **BRAND.md가 비어 있을 때의 기본값** (어떤 브랜드가 와도 결과가 나오게):
@@ -131,12 +132,27 @@ model: sonnet
 const set = figma.root.findOne(n => n.type === 'COMPONENT_SET');
 const comps = set ? set.children.filter(n => n.type === 'COMPONENT')
                   : figma.root.findAll(n => n.type === 'COMPONENT' && /post|template/i.test(n.name));
-const lum = p => { const f = p.fills?.[0]; if (!f || f.type !== 'SOLID') return 0.5; const {r,g,b} = f.color; return 0.2126*r + 0.7152*g + 0.0722*b; };
+// 한 노드의 단색 페인트 전부 (글자 줄마다 색이 다른 텍스트 = figma.mixed 도 포함)
+const paints = n => {
+  const ps = [];
+  if (n.type === 'TEXT' && n.fills === figma.mixed) { for (const s of n.getStyledTextSegments(['fills'])) ps.push(...s.fills); }
+  else if (Array.isArray(n.fills)) ps.push(...n.fills);
+  if (Array.isArray(n.strokes)) ps.push(...n.strokes);
+  return ps.filter(p => p.type === 'SOLID' && p.visible !== false);
+};
+const hex = c => '#' + [c.r, c.g, c.b].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+const lum = p => { const f = paints(p)[0]; if (!f) return 0.5; const {r,g,b} = f.color; return 0.2126*r + 0.7152*g + 0.0722*b; };
+const sat = c => { const m = Math.max(c.r,c.g,c.b), n = Math.min(c.r,c.g,c.b); return m ? (m - n) / m : 0; };
+// 액센트 컬러 = 템플릿 전체에서 가장 많이 쓰인 "채도 있는" 단색 (검정·흰색·회색 제외). 예: Brand Green #007635
+const count = {};
+for (const c of comps) for (const n of [c, ...c.findAll()]) for (const p of paints(n)) if (sat(p.color) > 0.3) { const h = hex(p.color); count[h] = (count[h] || 0) + 1; }
+const accent = Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 const templates = comps.map(c => {
   const H = c.height;
   const texts = c.findAll(n => n.type === 'TEXT' && n.name.startsWith('txt-')).map(t => {
     const abs = t.absoluteTransform, top = (abs[1][2] - c.absoluteTransform[1][2]) / H;   // 0=위, 1=아래
-    return { name: t.name, size: t.fontSize, lum: lum(t), top, font: t.fontName.family + '/' + t.fontName.style };
+    return { name: t.name, size: t.fontSize, lum: lum(t), top, font: t.fontName.family + '/' + t.fontName.style,
+             twoTone: t.fills === figma.mixed };   // 줄마다 색이 다른 본문 (예: 1줄 검정 + 2줄 액센트)
   });
   const light = texts.length && texts.reduce((a,t) => a + t.lum, 0) / texts.length > 0.6;   // 글자가 밝은가
   const tops = texts.map(t => t.top);
@@ -156,17 +172,22 @@ const templates = comps.map(c => {
            text: texts.map(t => t.name), sizes: Object.fromEntries(texts.map(t => [t.name, t.size])),
            image: c.children.filter(n => n.type === 'INSTANCE' || (n.type === 'FRAME' && n.fills?.some?.(f => f.type === 'IMAGE'))).map(n => n.name),
            fonts: [...new Set(texts.map(t => t.font))],
+           twoTone: texts.filter(t => t.twoTone).map(t => t.name),
            role, imageSuffix: `${bg}, ${comp}, vertical 4:5` };
 });
 const out = figma.root.children.find(p => p.name === '📥 Output');
-return { templates, outputPageId: out?.id ?? null };
+return { templates, accent, outputPageId: out?.id ?? null };
 ```
 
-결과의 `templates`(name · text · sizes · role · imageSuffix · fonts)를 B-1·B-2에서 쓴다. 기획서 머리에 이 표를 한 줄 추가해 사람이 볼 수 있게 한다:
+결과의 `templates`(name · text · sizes · role · imageSuffix · fonts · twoTone)와 `accent`를 B-1·B-2에서 쓴다. 기획서 머리에 이 표를 한 줄 추가해 사람이 볼 수 있게 한다:
 
 ```markdown
 템플릿 (피그마에서 읽음): Post1 — 정보·전환 · txt-headline/body/cta · 밝은 배경 | Post2 — 후킹·임팩트 · … | Post3 — 제품 소개 카드 · …
+액센트 컬러: #007635 → 브랜드 컬러 #F2A65A로 치환 (BRAND.md 1)   ← 브랜드 컬러가 비어 있거나 같으면 "템플릿 색 그대로"
 ```
+
+`twoTone`에 든 레이어(예: `txt-body`가 "1줄 검정 + 2줄 액센트")는 **카피를 두 줄로 쓴다** — 첫 줄은 상황, 둘째 줄은 메시지(줄바꿈 `\n`). 한 줄로 쓰면 강조 줄이 사라진다.
+같은 이름의 배리언트가 둘 이상 겹쳐 있으면(예: `Post2`와 `type4`가 같은 자리) 이름이 `Post`로 시작하는 것만 쓰고 보고에 "중복 배리언트 {이름} 무시"라고 적는다.
 
 `txt-` 레이어가 하나도 없는 컴포넌트뿐이면 **중단하고** "텍스트 레이어 이름을 txt-로 시작하게 바꿔달라"고 돌려준다. 컴포넌트를 만들거나 원본을 고치지 않는다.
 
@@ -192,19 +213,54 @@ const row = figma.createAutoLayout('HORIZONTAL', { name: '[1회차] {제목}', i
 row.x = right + 200; row.y = 0;
 out.appendChild(row);
 
+// ── 브랜드 컬러 치환 준비 (BRAND.md 1의 브랜드 컬러 · B-0의 accent) ──
+const ACCENT = '{B-0 accent, 예 #007635}';                 // 템플릿 액센트
+const CORE   = '{BRAND.md 1 브랜드 컬러 hex 또는 null}';   // 비어 있거나 ACCENT와 같으면 치환 안 함
+const hex = c => '#' + [c.r, c.g, c.b].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+const rgb = h => ({ r: parseInt(h.slice(1, 3), 16) / 255, g: parseInt(h.slice(3, 5), 16) / 255, b: parseInt(h.slice(5, 7), 16) / 255 });
+const swap = ps => ps.map(p => (p.type === 'SOLID' && hex(p.color) === ACCENT) ? { ...p, color: rgb(CORE) } : p);
+const recolor = inst => {
+  if (!CORE || CORE.toUpperCase() === ACCENT) return 0;
+  let n = 0;
+  for (const node of inst.findAll()) {
+    if (node.type === 'TEXT' && node.fills === figma.mixed) {          // 줄마다 색이 다른 본문
+      for (const s of node.getStyledTextSegments(['fills'])) { const f = swap(s.fills); if (f !== s.fills) { node.setRangeFills(s.start, s.end, f); n++; } }
+      continue;
+    }
+    if (Array.isArray(node.fills) && node.fills.some(p => p.type === 'SOLID' && hex(p.color) === ACCENT)) { node.fills = swap(node.fills); n++; }
+    if (Array.isArray(node.strokes) && node.strokes.some(p => p.type === 'SOLID' && hex(p.color) === ACCENT)) { node.strokes = swap(node.strokes); n++; }
+  }
+  // 브랜드 컬러가 밝으면(노랑·연분홍 등) 그 위의 흰 버튼 글자를 검정으로 — 안 그러면 안 보인다
+  const c = rgb(CORE); if (0.2126*c.r + 0.7152*c.g + 0.0722*c.b > 0.6)
+    for (const t of inst.findAll(x => x.type === 'TEXT' && Array.isArray(x.fills) && x.fills.some(p => p.type === 'SOLID' && hex(p.color) === '#FFFFFF')))
+      if (Array.isArray(t.parent?.fills) && t.parent.fills.some(p => p.type === 'SOLID' && hex(p.color) === CORE.toUpperCase())) t.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+  return n;
+};
+
 const slides = [ /* A의 슬라이드 표 + B-0b 매핑: {templateId, text:{headline, body, cta, option, caption}} — templateId는 B-0의 id, '—'와 템플릿에 없는 레이어는 빼고 */ ];
 const result = [];
 for (const s of slides) {
   const comp = await figma.getNodeByIdAsync(s.templateId);
   const inst = comp.createInstance();
   row.appendChild(inst);
-  const put = (name, chars) => { const t = inst.findOne(n => n.type === 'TEXT' && n.name === name); if (t && chars != null && chars !== '—') t.characters = chars; };
+  const put = (name, chars) => {
+    const t = inst.findOne(n => n.type === 'TEXT' && n.name === name); if (!t || chars == null || chars === '—') return;
+    const segs = t.fills === figma.mixed ? t.getStyledTextSegments(['fills']) : null;   // 두 줄 색 기억
+    t.characters = chars;                                                                 // characters를 바꾸면 첫 글자 색으로 통일된다
+    if (segs && segs.length > 1 && chars.includes('\n')) {                                // 둘째 줄에 원래 색(액센트) 복원
+      const i = chars.indexOf('\n') + 1;
+      t.setRangeFills(0, i, segs[0].fills); t.setRangeFills(i, chars.length, segs[segs.length - 1].fills);
+    }
+  };
   for (const [k, v] of Object.entries(s.text)) put('txt-' + k, v);   // 열 이름 = 레이어 이름
-  result.push({ instanceId: inst.id });
+  const swapped = recolor(inst);                                      // 텍스트 넣은 **뒤에** 색 치환
+  result.push({ instanceId: inst.id, swapped });
 }
 await row.screenshot();                                    // 확인용 — 응답에 이미지가 붙는다
-return { createdNodeIds: [row.id, ...result.map(r => r.instanceId)], rowId: row.id };
+return { createdNodeIds: [row.id, ...result.map(r => r.instanceId)], rowId: row.id, swapped: result.map(r => r.swapped) };
 ```
+
+`swapped`가 0인데 브랜드 컬러가 있으면 액센트를 못 찾은 것 — B-0의 `accent`가 실제 버튼 색인지 스크린샷으로 확인하고, 아니면 `ACCENT`를 스타일 가이드의 액센트 hex로 바꿔 그 게시물만 다시 만든다. 컴포넌트 원본은 절대 색을 바꾸지 않는다 — 인스턴스에서만 오버라이드한다.
 
 게시물 3건이면 호출 수는 B-0 1 + B-1 3 = 4회. 분당 10회 한도 안이다.
 
@@ -231,7 +287,8 @@ B-1 스크린샷에서 텍스트 잘림이 보이면 그 게시물만 고친다.
 - 이미지를 직접 생성하거나 외부 이미지를 슬롯에 넣는 것 (`image` 레이어는 사람 몫)
 - 경쟁사 이미지·문구 복제 (구조·포맷 참고까지만). 기획서에 경쟁사 URL·계정명·레퍼런스 항목 기재
 - 완성 캡션 문구 작성 (방향만)
-- 컴포넌트 원본 수정, 새 컴포넌트 생성, `📥 Output` 외 페이지에 생성, 노드 하나당 `use_figma` 1회
+- 컴포넌트 원본 수정(색 포함 — 치환은 인스턴스 오버라이드로만), 새 컴포넌트 생성, `📥 Output` 외 페이지에 생성, 노드 하나당 `use_figma` 1회
+- 액센트가 아닌 색(검정 글자, 흰 배경)까지 브랜드 컬러로 바꾸는 것
 - 템플릿에 없는 레이어에 텍스트를 넣으려고 노드 추가, 피그마에 없는 템플릿 이름 지어내기
 - `use_figma` 안에서 `fetch`·`createImageAsync` 사용 (지원 안 됨)
 
@@ -239,8 +296,8 @@ B-1 스크린샷에서 텍스트 잘림이 보이면 그 게시물만 고친다.
 
 ```
 plan:   outputs/planning/{YYYY-MM}_content-plan.md  ({브랜드} · {제품} · {주제} — {n}회차, 이미지 프롬프트 {n}개)
-figma:  {n}회차 틀 생성 — 📥 Output (이미지 슬롯은 비어 있음)
+figma:  {n}회차 틀 생성 — 📥 Output (이미지 슬롯은 비어 있음) · 액센트 {#템플릿색} → 브랜드 컬러 {#hex} 치환 {n}곳 (없으면 "템플릿 색 그대로")
   - [1회차] {제목} → {node 링크}
 다음: 피그마에서 image 레이어 선택 → Make an image → 기획서 프롬프트 붙여넣기
-검수 요청: (1) 촬영 제약·이미지 가이드 안인가 (2) 글자 잘림 없는가 (3) 카피가 BRAND.md 3. 말투·언어 스타일(영문·짧게)인가
+검수 요청: (1) 촬영 제약·이미지 가이드 안인가 (2) 글자 잘림 없는가 (3) 카피가 BRAND.md 3. 말투·언어 스타일(영문·짧게)인가 (4) 버튼·강조 줄이 브랜드 컬러인가 (밝은 색이면 글자가 보이는가)
 ```

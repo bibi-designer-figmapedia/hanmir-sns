@@ -7,6 +7,7 @@
 - 브랜드명: 분독 BOONDOG
 - 한 문장: 반려견과의 산책을 더 안전하고 즐겁게 만드는 프리미엄 산책용품 브랜드 (슬로건 "We make a good walk culture!")
 - 인스타 계정: @boondog_official (사이트 boondog.co.kr, 해외 Distributors 보유)
+- 브랜드 컬러: #F2A65A (피치 — 이번 달 밀 제품 컬러. 템플릿 액센트 초록이 이 색으로 바뀐다)
 
 ## 2. 제품 ★
 
@@ -51,3 +52,12 @@
 ## 7. 피그마 템플릿 (선택)
 
 - 파일 URL: https://www.figma.com/design/pAGtOaOwc9YXV9Axvg39dh/ (강사 원본 — 각자 복제본 URL로 바꿀 것)
+
+### 템플릿 스타일 가이드 (피그마에서 읽어 채움)
+
+| 항목 | 값 | 어디에 |
+|---|---|---|
+| 액센트 컬러 | Brand Green `#007635` → 게시물 생성 시 브랜드 컬러 `#F2A65A`로 치환 | CTA 버튼 배경, 본문 강조 줄 |
+| 기본 글자색 | Black `#000000` / White `#FFFFFF`(어두운 배경 위) / Black 60%(캡션) | 제목·본문 / 후킹 템플릿 / 보조 글 |
+| 폰트 | Inter — Regular · Medium · Semi Bold · Bold · Extra Bold | 모든 텍스트 |
+| 타입 스케일 | Display 100 Extra Bold · Display 100 Semi Bold · H1 68 Bold · H2 68 Regular · Subheading 60 Medium · Body Large 44 Medium · Button 40 Regular | 자간 -4% 공통 |

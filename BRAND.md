@@ -9,6 +9,7 @@
 - 브랜드명: {예: 분독 BOONDOG}
 - 한 문장: {예: 반려견과의 산책을 더 안전하고 즐겁게 만드는 프리미엄 산책용품 브랜드}
 - 인스타 계정: {예: @boondog_official}
+- 브랜드 컬러: {예: #FF6B35 — 로고·버튼에 쓰는 대표색 하나. 비우면 피그마 템플릿 원래 색 그대로}
 
 ## 2. 제품 ★
 
@@ -55,3 +56,16 @@
 - 파일 URL: {각자 복제한 파일 URL — 여기 적어두면 "피그마로 뽑아줘"라고만 해도 된다. 안 적으면 그때그때 프롬프트에 URL을 붙인다}
 
 템플릿 구조는 에이전트가 피그마에서 직접 읽습니다. 직접 만들 때 규칙은 둘: **텍스트 레이어 이름은 다섯 개 중에서만** — `txt-headline`(제목) · `txt-body`(본문) · `txt-cta`(버튼) · `txt-option`(옵션·컬러) · `txt-caption`(작은 보조 글) — 기획서의 headline/body/cta/option/caption 칸이 이 레이어로 그대로 들어갑니다. **이미지 레이어는 배리언트당 하나.** 글자색이 밝으면 어두운 배경, 어두우면 밝은 배경의 이미지 프롬프트가 나옵니다. 결과물은 `📥 Output` 페이지에 생기고 원본 컴포넌트는 건드리지 않습니다. (폰트 Inter Extra Bold는 한글이 안 찍히니 Regular/Semi Bold/Bold만.)
+
+### 템플릿 스타일 가이드 (수업 초반에 채움)
+
+Claude Code에 `템플릿 스타일 가이드 읽어서 BRAND.md 7번에 정리해줘 {피그마 Style Guide 프레임 URL}`라고 하면 아래 표가 채워집니다.
+사람이 보라고 두는 표이고, 에이전트는 실행 때 피그마에서 다시 읽습니다. **액센트 컬러가 1번의 브랜드 컬러와 다르면 에이전트가 게시물을 만들 때 액센트를 브랜드 컬러로 바꿉니다** (버튼 배경 · 강조 글자).
+
+| 항목 | 값 | 어디에 |
+|---|---|---|
+| 액센트 컬러 | Brand Green `#007635` | CTA 버튼 배경, 강조 텍스트(Post1 두 번째 줄) |
+| 기본 글자색 | Black `#000000` / 보조 Black 60% `#000000 60%` / 다크 배경 위 White `#FFFFFF` | Black: 제목·본문 · Black 60%: 캡션(Post3 하단) · White: 이미지 위 헤드라인(Post2·type4), 버튼 글자 |
+| 보조 컬러 | Sage `#8BAF9A` · Cream `#F5F1EB` (템플릿 미사용 — 가이드에만 있음) | 가이드상 보조 배경·서브 액센트 / 따뜻한 배경. 게시물 색 치환 대상 아님 |
+| 폰트 | Inter (Regular · Medium · Semi Bold · Bold · Extra Bold) | 모든 텍스트. 한글은 Regular/Semi Bold/Bold만 |
+| 타입 스케일 | Display 100px Extra Bold · Display Semi Bold 100px · Heading 1 68px Bold · Heading 2 68px Regular · Subheading 60px Medium · Body Large 44px Medium · Button 40px Regular — 모두 Letter Spacing -4% | Display: 대형 헤드라인 · H1: 강조 타이틀 · H2: 기본 타이틀 · Subheading: 설명 · Body Large: 옵션·캡션 · Button: CTA 글자 |
